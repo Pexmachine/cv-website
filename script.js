@@ -38,7 +38,7 @@ function showSlide(index, focus = true) {
   document.querySelector('.slide-announcement').textContent = `${names[index]}, slide ${index + 1} of 5`;
   closeMenu();
   const homeButtonParent = window.matchMedia('(max-width: 700px)').matches
-    ? document.querySelector('.portrait')
+    ? document.body
     : document.querySelector('.hero-copy');
   (index === 0 ? homeButtonParent : document.body).append(next);
   next.classList.toggle('home-next', index === 0);
@@ -108,7 +108,7 @@ window.addEventListener('hashchange', () => showSlide(fromHash()));
 window.addEventListener('resize', () => {
   if (active !== 0) return;
   const homeButtonParent = window.matchMedia('(max-width: 700px)').matches
-    ? document.querySelector('.portrait')
+    ? document.body
     : document.querySelector('.hero-copy');
   homeButtonParent.append(next);
 });
