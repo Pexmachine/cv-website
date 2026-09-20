@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @page { size: A4; margin: 11mm 15mm 11mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 8pt;
+    color: #1f2937;
+    background: #fff;
+    line-height: 1.38;
+  }
+
+  .accent-bar { height: 3pt; background: #D97706; margin-bottom: 8pt; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt; }
+  .header-left .name { font-size: 20pt; font-weight: 700; color: #0D1117; letter-spacing: -0.4pt; line-height: 1.1; }
+  .header-left .role { font-size: 9pt; color: #D97706; margin-top: 2pt; }
+  .header-right { text-align: right; color: #6B7280; font-size: 7pt; line-height: 1.65; }
+  .header-right a { color: #6B7280; text-decoration: none; }
+
+  hr { border: none; border-top: 0.4pt solid #E5E7EB; margin: 5pt 0; }
+
+  .section-head { display: flex; align-items: center; gap: 4pt; margin-bottom: 4pt; margin-top: 6pt; }
+  .section-head .bar { width: 2.5pt; height: 9pt; background: #D97706; flex-shrink: 0; }
+  .section-head .label { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.7pt; text-transform: uppercase; color: #0D1117; flex-shrink: 0; }
+  .section-head .rule { flex: 1; border-top: 0.35pt solid #E5E7EB; }
+
+  .summary { font-size: 7.8pt; color: #374151; line-height: 1.5; text-align: justify; margin-bottom: 6pt; }
+
+  .body-cols { display: flex; gap: 0; align-items: flex-start; }
+  .col-main { width: 63%; padding-right: 11pt; border-right: 0.4pt solid #E5E7EB; }
+  .col-side { width: 37%; padding-left: 11pt; }
+
+  .exp-block { margin-bottom: 6.5pt; }
+  .exp-title { font-size: 8.2pt; font-weight: 700; color: #0D1117; line-height: 1.2; }
+  .exp-meta { font-size: 7.5pt; margin-top: 0.5pt; }
+  .exp-meta .company { color: #D97706; }
+  .exp-meta .type { color: #6B7280; }
+  .exp-dates { font-size: 6.8pt; color: #6B7280; margin-top: 0.5pt; margin-bottom: 2pt; }
+
+  ul.bullets { list-style: none; padding: 0; margin: 0; }
+  ul.bullets li {
+    font-size: 7.5pt; color: #374151; line-height: 1.4;
+    padding-left: 9pt; text-indent: -7pt; margin-bottom: 1.5pt; text-align: justify;
+  }
+  ul.bullets li::before { content: "•"; color: #D97706; font-size: 6.5pt; margin-right: 2.5pt; }
+
+  .skill-block { margin-bottom: 4pt; }
+  .skill-cat { font-size: 7.3pt; font-weight: 700; color: #0D1117; margin-bottom: 0.5pt; }
+  .skill-val { font-size: 7pt; color: #374151; line-height: 1.38; }
+
+  .edu-block { margin-bottom: 5pt; }
+  .edu-deg { font-size: 7.5pt; font-weight: 700; color: #0D1117; }
+  .edu-school { font-size: 7pt; color: #6B7280; }
+  .edu-year { font-size: 7pt; color: #6B7280; }
+
+  .lang-line { font-size: 7pt; color: #374151; margin-bottom: 1.5pt; }
+  .lang-line strong { color: #0D1117; }
+
+  .proj-line { font-size: 7pt; color: #374151; margin-bottom: 2pt; padding-left: 8pt; text-indent: -6pt; }
+  .proj-line::before { content: "•"; color: #D97706; margin-right: 2pt; }
+</style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<div class="header">
+  <div class="header-left">
+    <div class="name">Kevin Sam</div>
+    <div class="role">ML Engineer &nbsp;·&nbsp; Data Scientist &nbsp;·&nbsp; Applied AI</div>
+  </div>
+  <div class="header-right">
+    Brussels, Belgium<br>
+    kevinbel69@outlook.com<br>
+    <a href="https://linkedin.com/in/kevin-sam-0a39a8206">linkedin.com/in/kevin-sam-0a39a8206</a><br>
+    +32 485 19 87 38
+  </div>
+</div>
+
+<hr>
+
+<div class="section-head"><div class="bar"></div><div class="label">Profile</div><div class="rule"></div></div>
+<div class="summary">
+  ML Engineer and Data Scientist with a strong academic background in AI and a track record of delivering end-to-end machine learning systems
+  in production across pharmaceuticals, critical infrastructure, and consulting. Core strengths lie in classical ML, computer vision, and
+  time-series modelling — complemented by hands-on experience with modern generative AI and LLM systems. Comfortable working close to the
+  research frontier: from fine-tuning state-of-the-art models to designing novel methods (XR locomotion, real-time anomaly detection).
+  Driven by curiosity, rigorous in execution.
+</div>
+
+<div class="body-cols">
+
+  <!-- LEFT: Experience -->
+  <div class="col-main">
+    <div class="section-head"><div class="bar"></div><div class="label">Experience</div><div class="rule"></div></div>
+
+    <div class="exp-block">
+      <div class="exp-title">Forward Deployed AI Engineer</div>
+      <div class="exp-meta"><span class="company">GSK (via Cognizant)</span> &nbsp;·&nbsp; <span class="type">Full-time</span></div>
+      <div class="exp-dates">Feb 2025 – Present &nbsp;·&nbsp; Wavre, Belgium &nbsp;·&nbsp; Hybrid</div>
+      <ul class="bullets">
+        <li>Work directly with stakeholders to turn complex operational challenges into reliable, production-grade AI products.</li>
+        <li>Lead end-to-end delivery across classical ML and generative AI, spanning discovery, modelling, engineering, deployment, and user adoption.</li>
+        <li>Develop solutions for pharmaceutical manufacturing, including predictive forecasting, real-time anomaly detection, and retrieval-augmented generation systems.</li>
+      </ul>
+    </div>
+
+    <div class="exp-block">
+      <div class="exp-title">Associate – Data Science Community</div>
+      <div class="exp-meta"><span class="company">Cognizant</span> &nbsp;·&nbsp; <span class="type">Full-time</span></div>
+      <div class="exp-dates">Jan 2025 – Present &nbsp;·&nbsp; Brussels, Belgium &nbsp;·&nbsp; Hybrid</div>
+      <ul class="bullets">
+        <li>Active contributor to Cognizant's global Data Science community; presenting current projects and co-developing AI engineering best practices.</li>
+      </ul>
+    </div>
+
+    <div class="exp-block">
+      <div class="exp-title">AI &amp; Cybersecurity Consultant</div>
+      <div class="exp-meta"><span class="company">HeadMind Partners</span> &nbsp;·&nbsp; <span class="type">Full-time</span></div>
+      <div class="exp-dates">Sep 2024 – Jan 2025 &nbsp;·&nbsp; Brussels, Belgium &nbsp;·&nbsp; Hybrid</div>
+      <ul class="bullets">
+        <li>Designed enterprise AI cybersecurity awareness programmes; prototyped RAG document retrieval applications.</li>
+        <li>Researched and developed deepfake generation &amp; detection models.</li>
+      </ul>
+    </div>
+
+    <div class="exp-block">
+      <div class="exp-title">AI Engineer</div>
+      <div class="exp-meta"><span class="company">Infrabel – Emerging ICT Team</span> &nbsp;·&nbsp; <span class="type">Internship</span></div>
+      <div class="exp-dates">Jan 2024 – Jun 2024 &nbsp;·&nbsp; Brussels, Belgium &nbsp;·&nbsp; Hybrid</div>
+      <ul class="bullets">
+        <li>Fine-tuned YOLO models on custom-annotated datasets (LabelStudio &amp; FiftyOne) for automated railway component defect detection.</li>
+        <li>Implemented AIOps ML pipelines in ElasticSearch for predictive maintenance of critical server infrastructure.</li>
+        <li><strong>Novel contribution:</strong> Designed a hand-gesture VR locomotion system in Unity/C# that measurably reduces motion sickness.</li>
+      </ul>
+    </div>
+
+    <div class="exp-block">
+      <div class="exp-title">Programming &amp; AI Teacher</div>
+      <div class="exp-meta"><span class="company">Logiscool Ltd.</span> &nbsp;·&nbsp; <span class="type">Part-time</span></div>
+      <div class="exp-dates">Sep 2021 – Present &nbsp;·&nbsp; Brussels, Belgium</div>
+      <ul class="bullets">
+        <li>Teaching ML/AI fundamentals, Python, JavaScript &amp; Unity/C# to learners aged 6–18 via project-based curricula.</li>
+      </ul>
+    </div>
+
+    <div class="exp-block">
+      <div class="exp-title">IT Manager</div>
+      <div class="exp-meta"><span class="company">Solvay Consulting Club</span> &nbsp;·&nbsp; <span class="type">Self-employed</span></div>
+      <div class="exp-dates">Aug 2022 – Sep 2023 &nbsp;·&nbsp; Brussels, Belgium</div>
+      <ul class="bullets">
+        <li>Fully rebuilt the website; attended to workshops with BCG, Roland Berger, Capgemini &amp; Deloitte.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col-side">
+    <div class="section-head"><div class="bar"></div><div class="label">Technical Skills</div><div class="rule"></div></div>
+
+    <div class="skill-block">
+      <div class="skill-cat">Machine Learning</div>
+      <div class="skill-val">Scikit-learn · PyTorch · TensorFlow · Time-series · Anomaly Detection · Predictive Modelling</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">Computer Vision</div>
+      <div class="skill-val">YOLO · Object Detection · Model Fine-tuning · LabelStudio · FiftyOne</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">Generative AI &amp; LLMs</div>
+      <div class="skill-val">HuggingFace · LangChain · RAG · Fine-tuning · Stable Diffusion · Prompt Engineering</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">MLOps &amp; Cloud</div>
+      <div class="skill-val">Azure ML · ElasticSearch · Docker · Git · CI/CD</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">Data Engineering</div>
+      <div class="skill-val">Pandas · PySpark · SQL · Vector Databases</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">Coding Assistants</div>
+      <div class="skill-val">Claude Code · GitHub Copilot · Codex</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">Programming Languages</div>
+      <div class="skill-val">Python · JavaScript · C# · SQL · Bash · Lisp-family</div>
+    </div>
+    <div class="skill-block">
+      <div class="skill-cat">XR &amp; Game Development</div>
+      <div class="skill-val">Unity · Godot · Azure DevOps · Webflow</div>
+    </div>
+
+    <div class="section-head"><div class="bar"></div><div class="label">Education</div><div class="rule"></div></div>
+    <div class="edu-block">
+      <div class="edu-deg">M.Sc. Engineering: Computer Science – AI <span style="color:#D97706;font-weight:700;">· Cum Laude</span></div>
+      <div class="edu-school">Vrije Universiteit Brussel (VUB)</div>
+      <div class="edu-year">2021 – 2024 &nbsp;·&nbsp; GPA 76%</div>
+    </div>
+    <div class="edu-block">
+      <div class="edu-deg">B.Sc. Computer Science</div>
+      <div class="edu-school">Vrije Universiteit Brussel (VUB)</div>
+      <div class="edu-year">2018 – 2021</div>
+    </div>
+
+    <div class="section-head"><div class="bar"></div><div class="label">Languages</div><div class="rule"></div></div>
+    <div class="lang-line"><strong>French</strong> – Native (C2)</div>
+    <div class="lang-line"><strong>Dutch</strong> – Native (C2)</div>
+    <div class="lang-line"><strong>English</strong> – Professional (C2)</div>
+    <div class="lang-line"><strong>German</strong> – Elementary (A2)</div>
+
+    <div class="section-head"><div class="bar"></div><div class="label">Key Projects</div><div class="rule"></div></div>
+    <div class="proj-line">Time-series Forecasting &amp; Anomaly Detection @ GSK</div>
+    <div class="proj-line">AIOps Predictive Maintenance @ Infrabel</div>
+    <div class="proj-line">YOLO Fine-tuning – Railway Defect Detection @ Infrabel</div>
+    <div class="proj-line">RAG Anomaly Platform @ GSK</div>
+    <div class="proj-line">VR Hand-Gesture Locomotion @ Infrabel (novel method)</div>
+    <div class="proj-line">Deepfake Detection &amp; Generation @ HeadMind</div>
+  </div>
+
+</div>
+
+</body>
+</html>
