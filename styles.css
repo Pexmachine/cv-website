@@ -233,6 +233,11 @@
 @media(max-width:700px){.hero-top:has(.location){min-height:0}.role-intro{width:100%}.role-rotation{flex:1}}
 @media(prefers-reduced-motion:reduce){.role-rotation>span{animation:none;opacity:0}.role-rotation>span:first-child{opacity:1}}
 
+.about-heading-gap{display:block;height:.16em}
+@media(max-width:700px){
+ .deck .portrait .next-slide.home-next{position:relative;display:flex;margin:20px 0 0;align-self:flex-start}
+}
+
 /* Keep the hero gutter inside its scroll boundary so button effects have room. */
 .deck main>#home{width:100%;max-width:none;padding-inline:var(--slide-gutter,32px)}
 @media(max-width:700px){.deck main>#home{padding-inline:20px}}

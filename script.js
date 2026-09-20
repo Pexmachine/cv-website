@@ -37,14 +37,18 @@ function showSlide(index, focus = true) {
   document.querySelector('.nav-counter').textContent = `0${index + 1} / 05`;
   document.querySelector('.slide-announcement').textContent = `${names[index]}, slide ${index + 1} of 5`;
   closeMenu();
-  (index === 0 ? document.querySelector('.hero-copy') : document.body).append(next);
+  const homeButtonParent = window.matchMedia('(max-width: 700px)').matches
+    ? document.querySelector('.portrait')
+    : document.querySelector('.hero-copy');
+  (index === 0 ? homeButtonParent : document.body).append(next);
   next.classList.toggle('home-next', index === 0);
   clearTimeout(hintTimer);
   next.classList.remove('is-ready');
   next.hidden = index === slides.length - 1;
   if (!next.hidden) {
-    next.querySelector('.next-label').textContent = `Next: ${names[index + 1]}`;
-    next.setAttribute('aria-label', `Next slide: ${names[index + 1]}`);
+    const label = index === 0 ? 'Learn how I can help you' : `Next: ${names[index + 1]}`;
+    next.querySelector('.next-label').textContent = label;
+    next.setAttribute('aria-label', `${label}: ${names[index + 1]}`);
     hintTimer = setTimeout(() => next.classList.add('is-ready'), index === 0 ? 3200 : 900);
   }
   if (focus) {
@@ -101,3 +105,10 @@ header.addEventListener('focusout', event => {
 });
 window.addEventListener('popstate', () => showSlide(fromHash()));
 window.addEventListener('hashchange', () => showSlide(fromHash()));
+window.addEventListener('resize', () => {
+  if (active !== 0) return;
+  const homeButtonParent = window.matchMedia('(max-width: 700px)').matches
+    ? document.querySelector('.portrait')
+    : document.querySelector('.hero-copy');
+  homeButtonParent.append(next);
+});
