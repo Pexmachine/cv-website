@@ -103,6 +103,68 @@
     });
   }
 
+  function enhanceExperience() {
+    const panels = [...document.querySelectorAll('.experience-list details')];
+    if (!panels.length || panels.some(panel => !panel.querySelector('.exp-body')?.animate)) return;
+    const states = new Map();
+
+    function expand(panel, expanded) {
+      const state = states.get(panel);
+      const {body, inner, summary} = state;
+      const height = panel.open ? body.getBoundingClientRect().height : 0;
+      const opacity = panel.open ? Number.parseFloat(getComputedStyle(inner).opacity) : 0;
+      state.animations.forEach(animation => animation.cancel());
+      state.expanded = expanded;
+      summary.setAttribute('aria-expanded', String(expanded));
+      if (!expanded && body.contains(document.activeElement)) summary.focus();
+      body.inert = !expanded;
+      if (reducedMotion.matches) {
+        panel.open = expanded;
+        state.animations = [];
+        return;
+      }
+      // Keep native details open until the closing animation has finished.
+      panel.open = true;
+      const heightAnimation = body.animate(
+        [{height: `${height}px`}, {height: `${expanded ? body.scrollHeight : 0}px`}],
+        {duration: 500, easing: 'cubic-bezier(.22,.68,0,1)', fill: 'both'}
+      );
+      const fadeAnimation = inner.animate(
+        [{opacity}, {opacity: expanded ? 1 : 0}],
+        {duration: expanded ? 450 : 250, easing: 'ease', fill: 'both'}
+      );
+      state.animations = [heightAnimation, fadeAnimation];
+      heightAnimation.onfinish = () => {
+        if (state.animations[0] !== heightAnimation) return;
+        panel.open = expanded;
+        state.animations.forEach(animation => animation.cancel());
+        state.animations = [];
+      };
+    }
+
+    panels.forEach(panel => {
+      const body = panel.querySelector('.exp-body');
+      const inner = body.querySelector('.exp-body-inner');
+      const summary = panel.querySelector('summary');
+      states.set(panel, {body, inner, summary, expanded: panel.open, animations: []});
+      panel.removeAttribute('name');
+      panel.classList.add('accordion-ready');
+      summary.setAttribute('aria-expanded', String(panel.open));
+      body.inert = !panel.open;
+      summary.addEventListener('click', event => {
+        event.preventDefault();
+        const opening = !states.get(panel).expanded;
+        if (opening) panels.forEach(other => {
+          if (other !== panel && states.get(other).expanded) expand(other, false);
+        });
+        expand(panel, opening);
+      });
+    });
+    reducedMotion.addEventListener('change', () => {
+      if (reducedMotion.matches) panels.forEach(panel => expand(panel, states.get(panel).expanded));
+    });
+  }
+
   function enhanceReveals() {
     // Keep the hero and portrait fully visible; scrolling reveals the sections
     // below it with a timed fade rather than moving them sideways.
@@ -528,6 +590,7 @@
   }
 
   enhanceNavigation();
+  enhanceExperience();
   enhanceProjectJump();
   enhanceForecast();
   enhanceRag();

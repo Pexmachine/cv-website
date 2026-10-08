@@ -193,7 +193,7 @@ h2 { font-size: clamp(36px, 4.5vw, 64px); line-height: 1.04; letter-spacing: -.0
 .object-hotspot:hover .hotspot-marker, .object-hotspot:focus-visible .hotspot-marker, .object-hotspot[aria-pressed='true'] .hotspot-marker { background: var(--accent); transform: scale(1.16); }
 .object-hotspot:focus-visible { outline-color: var(--on-dark); outline-offset: 0; }
 .detection-box { position: absolute; border: 2px solid var(--detection); box-shadow: 0 0 0 1px var(--detection-label-bg); background: var(--detection-tint); z-index: 2; pointer-events: none; }
-#detection-label { position: absolute; top: 0; left: 0; max-width: 100%; padding: 4px 6px; background: var(--detection-label-bg); color: var(--detection); font: 10px Satoshi,sans-serif; white-space: normal; }
+#detection-label { position: absolute; top: auto; bottom: calc(100% + 5px); left: 0; width: max-content; max-width: 180px; padding: 5px 7px; background: var(--detection-label-bg); color: var(--detection); font: 10px Satoshi,sans-serif; line-height: 1.3; white-space: nowrap; }
 .object-controls { padding: 13px 15px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .object-button, .detection-reset { border: 1px solid var(--demo-line); border-radius: 30px; min-width: 44px; min-height: 44px; background: transparent; color: var(--demo-ink); padding: 7px 12px; font-size: 11px; transition: background .2s, color .2s; }
 .object-button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -495,7 +495,7 @@ html:not(.js) .header { position: static; }
   .object-button { padding-inline: 10px; font-size: 10px; }
   .detection-reset { font-size: 10px; }
   .detection-result { padding-inline: 18px; min-height: 65px; }
-  #detection-label { font-size: 8px; padding: 3px 4px; }
+  #detection-label { font-size: 10px; padding: 5px 7px; }
   .project-pair { grid-template-columns: 1fr; margin-top: 56px; gap: 50px; }
   .project-small .project-visual { min-height: 345px; }
   .project-small .project-info { padding-top: 24px; }
@@ -630,3 +630,15 @@ html:not(.js) .header { position: static; }
 @media (prefers-reduced-motion: reduce) {
   .social-links > a, .contact-links > a, .contact-link-circle { transition: none; }
 }
+
+/* On phones, lead with the project context before its interactive preview. */
+@media (max-width: 767px) {
+  .project > .project-info { grid-column: 1; grid-row: 1; }
+  .project > .project-visual { grid-column: 1; grid-row: 2; }
+  .project:nth-child(even) > .project-info { grid-row: 1; }
+  .project:nth-child(even) > .project-visual { grid-row: 2; }
+}
+
+/* JS keeps details visible long enough to animate closing as well as opening. */
+.experience details.accordion-ready .exp-body { display: block; overflow: hidden; transition: none; }
+.experience details.accordion-ready .exp-body-inner { transition: none; }
