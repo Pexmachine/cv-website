@@ -10,40 +10,6 @@
   if (year) year.textContent = new Date().getFullYear();
   document.documentElement.classList.add('js');
 
-  function enhancePalette() {
-    const select = document.getElementById('palette-select');
-    if (!select) return;
-    const choices = [...select.options];
-    const themeColor = document.querySelector('meta[name="theme-color"]');
-    const storageKey = 'portfolio-palette';
-
-    function applyPalette(value) {
-      const choice = choices.find(option => option.value === value);
-      if (!choice) return false;
-      document.documentElement.setAttribute('data-palette', value);
-      select.value = value;
-      if (themeColor) themeColor.setAttribute('content', choice.dataset.themeColor);
-      return true;
-    }
-
-    // Always synchronize the selector with the page, even with stale/blocked storage.
-    applyPalette(document.documentElement.getAttribute('data-palette'));
-    try { applyPalette(window.localStorage.getItem(storageKey)); } catch { /* Storage is optional. */ }
-    select.addEventListener('change', () => {
-      if (!applyPalette(select.value)) return;
-      try { window.localStorage.setItem(storageKey, select.value); } catch { /* Keep switching available. */ }
-    });
-    select.addEventListener('focus', () => {
-      const header = document.querySelector('.header');
-      const menu = document.querySelector('.menu-toggle');
-      header?.classList.remove('menu-open');
-      menu?.setAttribute('aria-expanded', 'false');
-      menu?.setAttribute('aria-label', 'Open navigation menu');
-    });
-  }
-
-  enhancePalette();
-
   function enhanceNavigation() {
     const header = document.querySelector('.header');
     const menu = document.querySelector('.menu-toggle');
@@ -112,6 +78,31 @@
     updateNavigation();
   }
 
+  function enhanceProjectJump() {
+    const link = document.querySelector('.hero-orb');
+    const project = document.getElementById('forecast-project');
+    if (!link || !project) return;
+    link.addEventListener('click', event => {
+      if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+      const availableHeight = window.innerHeight - headerHeight;
+      const target = project.offsetHeight <= availableHeight - 32
+        ? project : project.querySelector('.project-visual') || project;
+      // Layout offsets exclude the scroll-reveal transform, so the landing stays exact.
+      let documentTop = 0;
+      for (let node = target; node; node = node.offsetParent) documentTop += node.offsetTop;
+      const inset = target.offsetHeight <= availableHeight - 32
+        ? headerHeight + (availableHeight - target.offsetHeight) / 2
+        : headerHeight + 16;
+      if (window.location.hash !== link.hash) window.history.pushState(null, '', link.hash);
+      window.scrollTo({
+        top: Math.max(0, documentTop - inset),
+        behavior: reducedMotion.matches ? 'instant' : 'smooth'
+      });
+    });
+  }
+
   function enhanceReveals() {
     // Keep the hero and portrait fully visible; scrolling reveals the sections
     // below it with a timed fade rather than moving them sideways.
@@ -157,16 +148,15 @@
 
   // Each demo owns one frame at a time. Pausing preserves elapsed time instead of
   // advancing the simulation while the visitor is elsewhere on the page.
-  function createPlayback(card, duration, render, onIdle) {
-    // Automatic loops should not repeatedly interrupt screen-reader speech.
-    card.querySelector('[data-demo-status]')?.setAttribute('aria-live', 'off');
+  function createPlayback(card, duration, render, {loop = true, autoStart = true, hold = 2500} = {}) {
+    card.querySelector('[data-demo-status]')?.setAttribute('aria-live', loop ? 'off' : 'polite');
     let frame = 0;
     let elapsed = 0;
     let lastTime = null;
     let interactionUntil = 0;
     let idleTimer = 0;
-    let manualPlayback = false;
-    const cycleDuration = duration + 900;
+    let held = false;
+    let active = autoStart;
     const rect = card.getBoundingClientRect();
     let visible = rect.bottom > 0 && rect.top < window.innerHeight;
 
@@ -180,24 +170,20 @@
     function synchronize() {
       if (idleTimer) clearTimeout(idleTimer);
       idleTimer = 0;
-      if (!visible || document.hidden || reducedMotion.matches) {
+      if (!active || !visible || document.hidden || reducedMotion.matches || held) {
         pause();
         return;
       }
       const remaining = interactionUntil - performance.now();
-      if (!manualPlayback && remaining > 0) {
+      if (remaining > 0) {
         pause();
-        idleTimer = setTimeout(() => { idleTimer = 0; synchronize(); }, remaining);
+        idleTimer = setTimeout(synchronize, remaining);
         return;
       }
-      if (interactionUntil && remaining <= 0) {
+      if (interactionUntil) {
         interactionUntil = 0;
         card.dataset.interacting = 'false';
-        onIdle?.();
-        if (elapsed >= duration) {
-          elapsed = 0;
-          render(0);
-        }
+        if (elapsed >= duration) elapsed = 0;
       }
       if (!frame) {
         card.dataset.playing = 'true';
@@ -207,72 +193,64 @@
 
     function tick(time) {
       frame = 0;
-      if (!visible || document.hidden || reducedMotion.matches) {
+      if (!active || !visible || document.hidden || reducedMotion.matches || held) {
         pause();
         return;
       }
-      if (lastTime !== null) elapsed = manualPlayback
-        ? Math.min(duration, elapsed + time - lastTime)
-        : (elapsed + time - lastTime) % cycleDuration;
+      if (lastTime !== null) elapsed = loop
+        ? (elapsed + time - lastTime) % (duration + hold)
+        : Math.min(duration, elapsed + time - lastTime);
       lastTime = time;
       render(Math.min(1, elapsed / duration));
-      if (manualPlayback && elapsed >= duration) manualPlayback = false;
+      if (!loop && elapsed >= duration) active = false;
       synchronize();
     }
 
     function finish() {
-      manualPlayback = false;
+      if (!active) return;
       if (idleTimer) clearTimeout(idleTimer);
       idleTimer = 0;
       elapsed = duration;
+      if (!loop) active = false;
       pause();
       render(1);
     }
 
     function interact() {
       interactionUntil = performance.now() + 3000;
-      manualPlayback = false;
       card.dataset.interacting = 'true';
       pause();
       synchronize();
     }
 
-    function play(manual = false) {
-      if (manual) interact();
-      manualPlayback = manual;
+    function play() {
       pause();
       elapsed = 0;
-      if (reducedMotion.matches) {
-        finish();
-        return;
-      }
-      render(0);
-      synchronize();
+      interactionUntil = 0;
+      card.dataset.interacting = 'false';
+      active = true;
+      if (reducedMotion.matches) finish();
+      else { render(0); synchronize(); }
     }
 
     const playback = {
-      synchronize,
-      finish,
-      play,
-      interact,
+      synchronize, finish, play, interact,
       setVisible(value) { visible = value; synchronize(); },
+      holdInteraction(value) { held = value; interact(); },
       seek(value) {
-        interact();
         elapsed = clamp(value) * duration;
         render(elapsed / duration);
-        synchronize();
+        interact();
+      },
+      motionChanged() {
+        if (reducedMotion.matches) finish();
+        else if (loop) play();
       }
     };
-    ['pointerdown', 'pointermove', 'pointerleave', 'keydown', 'focusin', 'focusout', 'input'].forEach(type => {
-      card.addEventListener(type, interact, {passive: true});
-    });
-    // Replay is an explicit one-shot preview; only its automatic repetitions
-    // wait for the same three-second inactivity window as other interactions.
-    card.querySelector('[data-play]')?.addEventListener('click', () => play(true));
     playbacks.set(card, playback);
     visibilityObserver?.observe(card);
     card.dataset.playing = 'false';
-    render(reducedMotion.matches ? 1 : 0);
+    render(autoStart && reducedMotion.matches ? 1 : 0);
     synchronize();
     return playback;
   }
@@ -289,6 +267,11 @@
     const clip = document.getElementById('forecast-clip');
     const dot = document.getElementById('forecast-dot');
     if (!card || !slider || !readout || !clip || !dot) return;
+    const threshold = document.getElementById('forecast-threshold');
+    const alert = document.getElementById('forecast-alert');
+    const alertTitle = document.getElementById('forecast-alert-title');
+    const recommendation = document.getElementById('forecast-recommendation');
+    const thresholdY = Number(threshold?.getAttribute('y1') ?? 72);
     readout.setAttribute('aria-live', 'off');
     const points = [[340, 116], [366, 99], [392, 105], [418, 77], [444, 87], [470, 61], [496, 69], [522, 48], [548, 58], [574, 34], [600, 42]];
     const playback = createPlayback(card, 2400, progress => {
@@ -302,22 +285,107 @@
       dot.setAttribute('cy', String(y));
       slider.value = String(Math.round(progress * 100));
       const horizon = Math.round(position);
-      slider.setAttribute('aria-valuetext', `Forecast horizon ${horizon} of 10`);
+      const anomaly = y <= thresholdY;
+      card.dataset.anomaly = String(anomaly);
+      slider.setAttribute('aria-valuetext', `Forecast horizon ${horizon} of 10. ${anomaly ? 'Anomaly detected: upper limit reached.' : 'Within normal range.'}`);
+      if (alert && alertTitle && recommendation) {
+        alert.dataset.state = anomaly ? 'anomaly' : 'normal';
+        alertTitle.textContent = anomaly ? 'Anomaly detected' : 'Within normal range';
+        recommendation.textContent = anomaly
+          ? 'Simulated recommendation: Lower the temperature to return to a normal state.'
+          : 'No anomaly detected. The forecast is below the upper limit of 85.';
+      }
       const text = `Horizon ${horizon} / 10`;
       if (readout.textContent !== text) readout.textContent = text;
-      setStatus(card, progress === 1 ? 'Forecast complete. The next simulated forecast starts shortly.' : 'Simulated forecast loops while visible. Replay or explore the timeline.');
     });
     slider.addEventListener('input', () => playback.seek(Number(slider.value) / 100));
+    let dragging = false;
+    slider.addEventListener('pointerdown', () => { dragging = true; playback.holdInteraction(true); });
+    // Release may happen outside the slider after dragging or touch scrolling.
+    const release = () => {
+      if (!dragging) return;
+      dragging = false;
+      playback.holdInteraction(false);
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    window.addEventListener('blur', release);
+    slider.addEventListener('keydown', event => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) playback.interact();
+    });
   }
 
-  function enhanceStepDemo(name, duration, messages) {
-    const card = document.querySelector(`[data-demo="${name}"]`);
-    if (!card) return;
-    createPlayback(card, duration, progress => {
-      const stage = progress === 0 ? 0 : Math.min(messages.length - 1, Math.ceil(progress * (messages.length - 1)));
+  function enhanceRag() {
+    const card = document.querySelector('[data-demo="rag"]');
+    const form = card?.querySelector('[data-rag-form]');
+    const results = card?.querySelector('[data-rag-results]');
+    const placeholder = card?.querySelector('[data-rag-placeholder]');
+    if (!card || !form || !results || !placeholder) return;
+    const steps = [...card.querySelectorAll('[data-rag-step]')];
+    let submitted = false;
+    const messages = [
+      'Ready. Send the report to start the simulated search.',
+      '1 / 4 — The human-written report is received by the system.',
+      '2 / 4 — Analysing the report and encoding its meaning as a numeric vector.',
+      '3 / 4 — Comparing that vector with previous reports in the vector database.',
+      '4 / 4 — Ranking the reports with the highest vector similarity.'
+    ];
+    const playback = createPlayback(card, 4400, progress => {
+      const complete = submitted && progress === 1;
+      const stage = !submitted ? 0 : progress < .2 ? 1 : progress < .45 ? 2 : progress < .8 ? 3 : 4;
       card.dataset.stage = String(stage);
-      card.style.setProperty('--demo-progress', String(progress));
-      setStatus(card, messages[stage]);
+      steps.forEach((step, index) => {
+        step.classList.toggle('is-active', !complete && index + 1 === stage);
+        step.classList.toggle('is-complete', complete || index + 1 < stage);
+      });
+      results.hidden = !complete;
+      placeholder.hidden = complete;
+      placeholder.textContent = submitted ? 'Searching the report history…' : 'Matching reports will appear here.';
+      setStatus(card, complete ? 'Search complete. Three potential recurrences returned. Send the report again to repeat.' : messages[stage]);
+    }, {loop: false, autoStart: false});
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      submitted = true;
+      // One playback owns the whole request. Sending again replaces an in-flight search.
+      playback.play();
+    });
+  }
+
+  function enhanceVr() {
+    const card = document.querySelector('[data-demo="vr"]');
+    const tree = document.getElementById('vr-tree');
+    const leftHand = document.getElementById('vr-left-hand');
+    const rightHand = document.getElementById('vr-right-hand');
+    const distance = document.getElementById('vr-distance');
+    if (!card || !tree || !leftHand || !rightHand || !distance) return;
+    distance.setAttribute('aria-live', 'off');
+    const markers = [...card.querySelectorAll('[data-vr-marker]')];
+    createPlayback(card, 5100, progress => {
+      const time = progress * 5100;
+      const movement = clamp((time - 1100) / 4000);
+      const walking = time >= 1100 && time < 5100 && !reducedMotion.matches;
+      // Arm swings are opposite in phase, like natural walking. Ease into and out of motion.
+      const envelope = Math.min(1, movement * 12, (1 - movement) * 12);
+      const swing = walking ? Math.sin((time - 1100) / 900 * Math.PI * 2) * envelope : 0;
+      leftHand.setAttribute('transform', `translate(0 ${-swing * 26}) translate(120 300) scale(${1 + swing * .12}) rotate(${swing * 9}) translate(-120 -300)`);
+      rightHand.setAttribute('transform', `translate(0 ${swing * 26}) translate(520 300) scale(${1 - swing * .12}) rotate(${-swing * 9}) translate(-520 -300)`);
+      const scale = 1 / (1 - movement * .6);
+      tree.setAttribute('transform', `translate(${390 + movement * 62} ${149 + movement * 86}) scale(${scale})`);
+      // Project lane markings from the vanishing point toward the viewer.
+      markers.forEach((marker, index) => {
+        const depth = (index / markers.length + movement * .72) % 1;
+        const far = Math.max(0, depth - .07);
+        const y = 122 + 218 * depth * depth;
+        const top = 122 + 218 * far * far;
+        const width = 1 + depth * 5;
+        const topWidth = 1 + far * 5;
+        marker.setAttribute('d', `M${320 - topWidth} ${top}H${320 + topWidth}L${320 + width} ${y}H${320 - width}Z`);
+      });
+      distance.textContent = `${(movement * 6).toFixed(1)} m forward`;
+      card.dataset.stage = walking ? 'walking' : movement === 1 ? 'arrived' : 'rest';
+      setStatus(card, walking ? 'Alternate arm swings move you forward. Watch the tree get closer.'
+        : movement === 1 ? 'Arms at rest. Forward travel pauses before the next walking cycle.'
+          : 'Arms at rest. The walking motion starts shortly.');
     });
   }
 
@@ -347,17 +415,16 @@
     let pinned = null;
     let hovered = null;
     let focused = null;
-    let automatic = null;
 
     function update() {
       const inspected = hovered || focused || pinned;
-      const active = inspected || automatic;
-      result.setAttribute('aria-live', inspected ? 'polite' : 'off');
+      const active = inspected;
+      result.setAttribute('aria-live', 'polite');
       const detection = DETECTIONS[active];
       buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.object === pinned)));
       box.hidden = !detection;
       if (!detection) {
-        result.textContent = 'Hover an object, or select one below to inspect a simulated detection.';
+        result.textContent = 'Hover or tap a + marker, or choose an object below, to inspect a simulated detection.';
         return;
       }
       box.style.left = `${detection.x * 100}%`;
@@ -365,12 +432,11 @@
       box.style.width = `${detection.width * 100}%`;
       box.style.height = `${detection.height * 100}%`;
       label.textContent = `${detection.label} · ${detection.confidence}%`;
-      const message = `${detection.label} detected · ${detection.confidence}% simulated confidence.${active === pinned ? ' Selected.' : inspected ? ' Select to pin.' : ' Automatic preview.'}`;
+      const message = `${detection.label} detected · ${detection.confidence}% simulated confidence.${active === pinned ? ' Selected.' : ' Select to pin.'}`;
       if (result.textContent !== message) result.textContent = message;
     }
 
-    function clear(userInteraction = true) {
-      if (userInteraction) playback.interact();
+    function clear() {
       pinned = null;
       hovered = null;
       focused = null;
@@ -378,7 +444,6 @@
     }
 
     function select(object) {
-      playback.interact();
       if (pinned === object) clear();
       else { pinned = object; hovered = null; focused = null; update(); }
     }
@@ -399,7 +464,6 @@
     // touch and keyboard targets. Small objects win overlapping annotations.
     scene.addEventListener('pointermove', event => {
       if (!finePointer.matches || event.pointerType === 'touch') return;
-      playback.interact();
       const hotspot = event.target.closest?.('button[data-object]');
       const object = hotspot ? hotspot.dataset.object : objectAtPoint(event);
       if (hovered === object) return;
@@ -407,7 +471,6 @@
       update();
     });
     scene.addEventListener('pointerleave', () => {
-      playback.interact();
       if (hovered === null) return;
       hovered = null;
       update();
@@ -428,18 +491,15 @@
       }
       button.addEventListener('pointerenter', event => {
         if (!finePointer.matches || event.pointerType === 'touch') return;
-        playback.interact();
         hovered = object;
         update();
       });
       button.addEventListener('pointerleave', () => {
-        playback.interact();
         if (hovered === object) hovered = null;
         update();
       });
-      button.addEventListener('focus', () => { playback.interact(); focused = object; update(); });
+      button.addEventListener('focus', () => { focused = object; update(); });
       button.addEventListener('blur', () => {
-        playback.interact();
         if (focused === object) focused = null;
         update();
       });
@@ -450,21 +510,13 @@
       if (event.key === 'Escape') clear();
     });
     update();
-    const scanOrder = ['person', 'sign', 'train', 'rail'];
-    const playback = createPlayback(card, 5600, progress => {
-      const object = scanOrder[Math.min(scanOrder.length - 1, Math.floor(progress * scanOrder.length))];
-      if (automatic === object) return;
-      automatic = object;
-      update();
-    }, () => clear(false));
   }
 
   document.addEventListener('visibilitychange', () => {
     playbacks.forEach(playback => playback.synchronize());
   });
-  reducedMotion.addEventListener('change', event => {
-    if (event.matches) playbacks.forEach(playback => playback.finish());
-    else playbacks.forEach(playback => playback.play());
+  reducedMotion.addEventListener('change', () => {
+    playbacks.forEach(playback => playback.motionChanged());
   });
   if (!hasObserver) {
     const updateVisibility = () => playbacks.forEach((playback, card) => {
@@ -476,20 +528,10 @@
   }
 
   enhanceNavigation();
+  enhanceProjectJump();
   enhanceForecast();
-  enhanceStepDemo('rag', 2400, [
-    'Simulated workflow loops while visible.',
-    '1 / 4 — Read the document context.',
-    '2 / 4 — Retrieve the relevant passages.',
-    '3 / 4 — Generate an answer from that context.',
-    '4 / 4 — Illustrative answer ready. The workflow repeats shortly.'
-  ]);
-  enhanceStepDemo('vr', 2000, [
-    'Simulated gesture loops while visible.',
-    '1 / 3 — Recognize a hand gesture.',
-    '2 / 3 — Translate the gesture into movement.',
-    '3 / 3 — Arrive at the destination. The gesture repeats shortly.'
-  ]);
+  enhanceRag();
+  enhanceVr();
   enhanceDetection();
   enhanceReveals();
 })();
